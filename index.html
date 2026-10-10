@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="将旧字幕的人工校对迁移到新版 SRT，保留新时间轴。浏览器本地处理，无需账号或模型。">
+  <title>CueCarry · 字幕校对迁移器</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="src/core.js"></script>
+  <script defer src="src/demo.js"></script>
+  <script defer src="src/app.js"></script>
+</head>
+<body>
+  <header class="topbar wrap">
+    <a class="brand" href="#" aria-label="CueCarry 首页"><span class="brand-mark" aria-hidden="true">C<span>↗</span></span><span>CueCarry<small>字幕校对迁移器</small></span></a>
+    <span class="privacy"><span aria-hidden="true">●</span> 全程在你的浏览器中处理</span>
+  </header>
+  <main class="wrap">
+    <section class="intro">
+      <div><p class="eyebrow">旧校对 × 新时间轴</p><h1>把改好的字，<br class="mobile-break">带到新版字幕里。</h1><p class="lede">重剪视频、重新识别之后，找回上次改好的专名和错字。<br>明确的匹配直接迁移，有歧义的地方由你决定。</p></div>
+      <button id="demo" class="button secondary demo-button">用示例试一遍 <span aria-hidden="true">↗</span></button>
+    </section>
+
+    <section class="panel import-panel" aria-labelledby="import-heading">
+      <div class="section-heading"><div><span class="step">01</span><h2 id="import-heading">准备三个版本</h2></div><span class="muted">UTF-8 · SRT · 每份最多 5 MB</span></div>
+      <div class="input-grid">
+        <article class="input-card" data-slot="base"><div class="input-title"><span class="letter">A</span><div><h3>旧识别稿</h3><p>上次机器识别的原始版本</p></div></div><label class="drop-zone" for="file-base"><span class="upload-icon" aria-hidden="true">↑</span><strong>选择或拖入 SRT</strong><span class="file-name" id="name-base">未选择文件</span></label><input id="file-base" class="file-input" type="file" accept=".srt,text/plain"><details><summary>或直接粘贴字幕</summary><textarea id="text-base" aria-label="旧识别稿内容" spellcheck="false" placeholder="1&#10;00:00:01,000 --> 00:00:03,000&#10;原始识别文字"></textarea></details></article>
+        <article class="input-card" data-slot="corrected"><div class="input-title"><span class="letter">B</span><div><h3>旧校对稿</h3><p>你已经修正文字的版本</p></div></div><label class="drop-zone" for="file-corrected"><span class="upload-icon" aria-hidden="true">↑</span><strong>选择或拖入 SRT</strong><span class="file-name" id="name-corrected">未选择文件</span></label><input id="file-corrected" class="file-input" type="file" accept=".srt,text/plain"><details><summary>或直接粘贴字幕</summary><textarea id="text-corrected" aria-label="旧校对稿内容" spellcheck="false" placeholder="1&#10;00:00:01,000 --> 00:00:03,000&#10;人工校对后的文字"></textarea></details></article>
+        <article class="input-card current-input" data-slot="current"><div class="input-title"><span class="letter">C</span><div><h3>新识别稿</h3><p>本次导出的新版字幕与时间轴</p></div></div><label class="drop-zone" for="file-current"><span class="upload-icon" aria-hidden="true">↑</span><strong>选择或拖入 SRT</strong><span class="file-name" id="name-current">未选择文件</span></label><input id="file-current" class="file-input" type="file" accept=".srt,text/plain"><details><summary>或直接粘贴字幕</summary><textarea id="text-current" aria-label="新识别稿内容" spellcheck="false" placeholder="1&#10;00:00:08,000 --> 00:00:10,000&#10;新版识别文字"></textarea></details></article>
+      </div>
+      <div class="import-footer"><p>首版要求 A、B 的条目与时间轴一致，只迁移文字修改。<br class="mobile-break">导出始终沿用 C 的条目顺序、编号和时间轴。</p><div class="actions"><button id="reset" class="button quiet">清空</button><button id="analyze" class="button primary">分析迁移 <span aria-hidden="true">→</span></button></div></div>
+      <p id="error" class="error" role="alert" tabindex="-1" hidden></p>
+      <p id="notice" class="notice" role="status" hidden></p>
+    </section>
+
+    <section id="empty-state" class="empty-state" aria-label="等待分析"><span class="flow" aria-hidden="true"><i>A</i><span>＋</span><i>B</i><span>→</span><i class="flow-current">C′</i></span><h2>保留新节奏，找回旧校对</h2><p>分析后，你将在这里看到每一处文字修订的去向。</p></section>
+
+    <section id="review" aria-labelledby="review-heading" hidden>
+      <div class="section-heading review-heading"><div><span class="step">02</span><h2 id="review-heading">审阅迁移结果</h2></div><p id="progress" class="muted" aria-live="polite"></p></div>
+      <div id="stats" class="stats" aria-label="分析统计"></div>
+      <div class="review-layout"><div><div class="filterbar" role="group" aria-label="筛选修订"><button class="filter active" data-filter="all" aria-pressed="true">全部</button><button class="filter" data-filter="ready" aria-pressed="false">可直接迁移</button><button class="filter" data-filter="attention" aria-pressed="false">需要审阅</button><button class="filter" data-filter="already-applied" aria-pressed="false">新稿已有</button></div><div id="changes" class="changes"></div></div>
+        <aside class="panel export-panel" aria-labelledby="export-heading"><span class="step">03</span><h2 id="export-heading">带走新字幕</h2><p class="muted">文字按你的选择更新，时间轴保持新版。</p><div id="export-status" class="export-status" role="status"></div><label for="preview">导出预览 <span id="preview-state" class="muted"></span></label><textarea id="preview" readonly spellcheck="false" aria-label="新字幕导出预览"></textarea><button id="download-srt" class="button primary full" disabled>下载新字幕 .srt <span aria-hidden="true">↓</span></button><button id="download-audit" class="button secondary full" disabled>下载迁移记录 .json</button><p class="fine-print">三个输入文件均不会被修改。迁移记录包含修订文字，请按字幕内容的保密要求保存。</p></aside>
+      </div>
+    </section>
+    <section class="limits"><h2>它什么时候会停下来等你？</h2><p>重复短句、重新改写、拆分或合并的条目可能无法可靠对应。相似文字只用于提供候选，不会自动替换；“未定位”也不代表原句已被删除。请在导出前确认这些修订。</p></section>
+  </main>
+  <footer class="wrap footer"><span>CueCarry <span class="muted">v0.1 · 无需安装，无需账号</span></span><span>你的字幕只属于你。</span></footer>
+</body>
+</html>

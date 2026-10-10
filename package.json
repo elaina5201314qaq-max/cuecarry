@@ -1,0 +1,9 @@
+{
+  "name": "cuecarry",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Carry human subtitle corrections into a new SRT while preserving the new timeline.",
+  "scripts": {"test": "node --test", "start": "python -m http.server 4173 --bind 127.0.0.1"},
+  "engines": {"node": ">=20"},
+  "license": "MIT"
+}
